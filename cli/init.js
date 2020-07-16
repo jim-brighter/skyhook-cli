@@ -2,16 +2,25 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const chalk = require('chalk');
 
-const inquirer = require('../lib/inquirer');
+const infraOrAppPrompt = require('../lib/prompts/infraOrApp');
+const infraPrompts = require('../lib/prompts/infraPrompts');
+const appPrompts = require('../lib/prompts/appPrompts');
 
 const run = async () => {
     const config = {};
 
-    const infraOrApp = await inquirer.askInfraOrApp();
+    const infraOrApp = await infraOrAppPrompt.askInfraOrApp();
     let prompts;
 
     if (infraOrApp['infraOrApp'] === 'infra' || infraOrApp['infraOrApp'] === 'infrastructure') {
-        prompts = {'infrastructureParams': await inquirer.infraPrompts()};
+        prompts = {'infrastructureParams': await infraPrompts.infraPrompts()};
+    }
+    else if (infraOrApp['infraOrApp'] === 'app' || infraOrApp['infraOrApp'] === 'application') {
+        prompts = {'applicationParams': await appPrompts.appPrompts()};
+    }
+    else {
+        console.error('Invalid choice');
+        process.exit(1);
     }
 
     Object.assign(config, infraOrApp);
