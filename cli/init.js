@@ -1,10 +1,9 @@
-const yaml = require('js-yaml');
-const fs = require('fs');
 const chalk = require('chalk');
 
 const infraOrAppPrompt = require('../lib/prompts/infraOrApp');
 const infraPrompts = require('../lib/prompts/infraPrompts');
 const appPrompts = require('../lib/prompts/appPrompts');
+const fileService = require('../lib/services/fileService');
 
 const run = async () => {
     const config = {};
@@ -26,7 +25,7 @@ const run = async () => {
     Object.assign(config, infraOrApp);
     Object.assign(config, prompts);
 
-    fs.writeFileSync('./Tetherfile', yaml.safeDump(config));
+    fileService.writeTetherFile(config);
 
     console.log(`Your config is located at ${chalk.green('./Tetherfile')}`);
 };
