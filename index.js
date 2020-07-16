@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const clear = require('clear');
+const { clear } = require('console');
+
 const chalk = require('chalk');
 const figlet = require('figlet');
 
