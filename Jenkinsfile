@@ -10,6 +10,12 @@ node {
 
     deleteDir()
 
+    stage("PR TITLE CHECK") {
+        if (isPr()) {
+            assert env.CHANGE_TITLE ==~ /(patch|minor|major):[ a-zA-Z1-9]*/
+        }
+    }
+
     stage("GIT CHECKOUT") {
         if (isPr() || (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE))) {
             git(
@@ -35,7 +41,7 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr() || (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE))) {
+        if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             sh """
                 npm i
             """
@@ -45,11 +51,13 @@ node {
         }
     }
 
-    stage("GIT CONFIG") {
-        if (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE)) {
+    stage("PRE PUBLISH") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             sh """
                 git config user.name "Skyhook Bot"
                 git config user.email "skyhookbot"
+
+                npm run jenkinsAuth
             """
         }
         else {
@@ -63,7 +71,6 @@ node {
         ]) {
             if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
                 sh """
-                    npm run jenkinsAuth
                     npm run publishPatch
                 """
             }
@@ -79,7 +86,6 @@ node {
         ]) {
             if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
                 sh """
-                    npm run jenkinsAuth
                     npm run publishMinor
                 """
             }
@@ -95,7 +101,6 @@ node {
         ]) {
             if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
                 sh """
-                    npm run jenkinsAuth
                     npm run publishMajor
                 """
             }
@@ -106,7 +111,7 @@ node {
     }
 
     stage("PUSH TAGS") {
-        if (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE)) {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             withCredentials([
                 usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
             ]) {
@@ -144,4 +149,8 @@ def isVersionPush(message) {
 
 def isPushToMaster() {
     return env.BRANCH_NAME == "master"
+}
+
+def isNonVersionPushToMaster(message) {
+    return isPushToMaster() && !isVersionPush(message)
 }
