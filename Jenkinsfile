@@ -59,7 +59,7 @@ node {
 
     stage("PUBLISH PATCH") {
         withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
         ]) {
             if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
                 sh """
@@ -74,7 +74,7 @@ node {
 
     stage("PUBLISH MINOR") {
         withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
         ]) {
             if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
                 sh """
@@ -89,7 +89,7 @@ node {
 
     stage("PUBLISH MAJOR") {
         withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
         ]) {
             if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
                 sh """
