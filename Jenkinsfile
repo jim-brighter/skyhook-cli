@@ -35,13 +35,22 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr()) {
+        if (isPr() || isPushToMaster()) {
             sh """
                 npm i
             """
         }
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("GIT CONFIG") {
+        if (isPushToMaster()) {
+            sh """
+                git config user.name "Skyhook Bot"
+                git config user.email "skyhookbot"
+            """
         }
     }
 
@@ -85,8 +94,6 @@ node {
             ]) {
                 def origin = "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/skyhook-cli/skyhook-cli.git"
                 sh """
-                    git config user.name "Skyhook Bot"
-                    git config user.email "skyhookbot"
                     git push ${origin} master --tags
                 """
             }
