@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "jenkinsAuth": "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc",
     "publishPatch": "npm version patch -m \"version update to %s\" && npm publish --access public",
     "publishMinor": "npm version minor -m \"version update to %s\" && npm publish --access public",
     "publishMajor": "npm version major -m \"version update to %s\" && npm publish --access public"

@@ -63,8 +63,7 @@ node {
         ]) {
             if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
                 sh """
-                    env
-                    echo \$NPM_TOKEN
+                    npm run jenkinsAuth
                     npm run publishPatch
                 """
             }
@@ -80,6 +79,7 @@ node {
         ]) {
             if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
                 sh """
+                    npm run jenkinsAuth
                     npm run publishMinor
                 """
             }
@@ -95,6 +95,7 @@ node {
         ]) {
             if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
                 sh """
+                    npm run jenkinsAuth
                     npm run publishMajor
                 """
             }
