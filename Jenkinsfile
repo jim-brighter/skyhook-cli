@@ -11,7 +11,7 @@ node {
     deleteDir()
 
     stage("GIT CHECKOUT") {
-        if (isPr() || (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE))) {
+        if (isPr() || isPushToMaster()) {
             git(
                 url: "${REPO_URL}",
                 credentialsId: 'git-login',
