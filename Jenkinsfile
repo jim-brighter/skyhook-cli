@@ -52,6 +52,9 @@ node {
                 git config user.email "skyhookbot"
             """
         }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
     }
 
     stage("PUBLISH PATCH") {
