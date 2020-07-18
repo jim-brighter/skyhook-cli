@@ -63,6 +63,8 @@ node {
         ]) {
             if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
                 sh """
+                    env
+                    echo \$NPM_TOKEN
                     npm run publishPatch
                 """
             }
