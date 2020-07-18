@@ -11,7 +11,7 @@ node {
     deleteDir()
 
     stage("GIT CHECKOUT") {
-        if (isPr() || isPushToMaster()) {
+        if (isPr() || (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE))) {
             git(
                 url: "${REPO_URL}",
                 credentialsId: 'git-login',
@@ -35,7 +35,7 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr() || isPushToMaster()) {
+        if (isPr() || (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE))) {
             sh """
                 npm i
             """
@@ -46,7 +46,7 @@ node {
     }
 
     stage("GIT CONFIG") {
-        if (isPushToMaster()) {
+        if (isPushToMaster() && !isVersionPush(COMMIT_MESSAGE)) {
             sh """
                 git config user.name "Skyhook Bot"
                 git config user.email "skyhookbot"
