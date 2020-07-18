@@ -14,6 +14,9 @@ node {
         if (isPr()) {
             assert env.CHANGE_TITLE ==~ /(patch|minor|major):[ a-zA-Z1-9]*/
         }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
     }
 
     stage("GIT CHECKOUT") {
