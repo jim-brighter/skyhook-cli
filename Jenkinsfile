@@ -52,12 +52,27 @@ node {
     }
 
     stage("PRE PUBLISH") {
-        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-            sh """
-                git config user.name "Skyhook Bot"
-                git config user.email "skyhookbot"
+        withCredentials([
+            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
+        ]) {
+            if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+                sh """
+                    git config user.name "Skyhook Bot"
+                    git config user.email "skyhookbot"
 
-                npm run jenkinsAuth
+                    npm run jenkinsAuth
+                """
+            }
+            else {
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+            }
+        }
+    }
+
+    stage("PUBLISH PATCH") {
+        if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
+            sh """
+                npm run publishPatch
             """
         }
         else {
@@ -65,48 +80,25 @@ node {
         }
     }
 
-    stage("PUBLISH PATCH") {
-        withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
-        ]) {
-            if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
-                sh """
-                    npm run publishPatch
-                """
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-    }
-
     stage("PUBLISH MINOR") {
-        withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
-        ]) {
-            if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
-                sh """
-                    npm run publishMinor
-                """
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+        if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
+            sh """
+                npm run publishMinor
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
         }
     }
 
     stage("PUBLISH MAJOR") {
-        withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
-        ]) {
-            if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
-                sh """
-                    npm run publishMajor
-                """
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+        if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
+            sh """
+                npm run publishMajor
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
         }
     }
 
