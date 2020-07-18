@@ -58,35 +58,47 @@ node {
     }
 
     stage("PUBLISH PATCH") {
-        if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
-            sh """
-                npm run publishPatch
-            """
-        }
-        else {
-            Utils.markStageSkippedForConditional(STAGE_NAME)
+        withCredentials([
+            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+        ]) {
+            if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
+                sh """
+                    npm run publishPatch
+                """
+            }
+            else {
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+            }
         }
     }
 
     stage("PUBLISH MINOR") {
-        if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
-            sh """
-                npm run publishMinor
-            """
-        }
-        else {
-            Utils.markStageSkippedForConditional(STAGE_NAME)
+        withCredentials([
+            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+        ]) {
+            if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
+                sh """
+                    npm run publishMinor
+                """
+            }
+            else {
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+            }
         }
     }
 
     stage("PUBLISH MAJOR") {
-        if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
-            sh """
-                npm run publishMajor
-            """
-        }
-        else {
-            Utils.markStageSkippedForConditional(STAGE_NAME)
+        withCredentials([
+            string(credentialsId: 'npm-token', variable: 'NPM_AUTH_TOKEN')
+        ]) {
+            if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
+                sh """
+                    npm run publishMajor
+                """
+            }
+            else {
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+            }
         }
     }
 
