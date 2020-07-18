@@ -63,12 +63,7 @@ node {
         ]) {
             if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
                 sh """
-<<<<<<< HEAD
                     npm run jenkinsAuth
-=======
-                    env
-                    echo \$NPM_TOKEN
->>>>>>> 82107f8c5754b819f2efbd5d461fafe1a32e8033
                     npm run publishPatch
                 """
             }
