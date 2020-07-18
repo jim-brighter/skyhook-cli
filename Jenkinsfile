@@ -17,7 +17,7 @@ node {
     }
 
     stage("GIT CHECKOUT") {
-        if (isPr() || isPushToMaster())) {
+        if (isPr() || isPushToMaster()) {
             git(
                 url: "${REPO_URL}",
                 credentialsId: 'git-login',
