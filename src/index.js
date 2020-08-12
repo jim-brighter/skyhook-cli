@@ -22,6 +22,6 @@ switch (command) {
         init.run();
         break;
     default:
-        console.error(chalk.red('init is the only command implemented so far'));
-        process.exit(1);
+        console.info(chalk.redBright('init is the only command implemented so far'));
+        process.exit(0);
 }
