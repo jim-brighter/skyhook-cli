@@ -4,7 +4,7 @@
   "description": "Skyhook CLI Codebase",
   "main": "src/index.js",
   "bin": {
-    "skyhook": "min/index.js"
+    "skyhook": "src/index.js"
   },
   "pkg": {
     "assets": [
