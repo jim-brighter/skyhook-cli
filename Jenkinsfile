@@ -105,6 +105,17 @@ node {
         }
     }
 
+    stage("BUILD BINARIES") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+            sh """
+                npx pkg .
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
     stage("PUSH TAGS") {
         if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             withCredentials([

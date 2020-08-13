@@ -61,3 +61,6 @@ typings/
 .next
 
 Tetherfile
+skyhook-cli-linux
+skyhook-cli-macos
+skyhook-cli-win.exe
