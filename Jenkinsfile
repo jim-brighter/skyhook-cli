@@ -108,6 +108,8 @@ node {
     stage("BUILD BINARIES") {
         if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             sh """
+                #!/bin/bash
+
                 npm run cleanBin && npm run buildAllBins
             """
         }
