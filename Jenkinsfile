@@ -12,7 +12,7 @@ node {
 
     stage("PR TITLE CHECK") {
         if (isPr()) {
-            assert env.CHANGE_TITLE ==~ /(patch|minor|major):[ a-zA-Z1-9]*/
+            assert env.CHANGE_TITLE ==~ /(patch|minor|major):[ a-zA-Z1-9,]*/
         }
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
@@ -105,17 +105,6 @@ node {
         }
     }
 
-    stage("BUILD BINARIES") {
-        if (isPr() || isPushToMaster()) {
-            sh """
-                npm run cleanBin && npm run buildAllBins
-            """
-        }
-        else {
-            Utils.markStageSkippedForConditional(STAGE_NAME)
-        }
-    }
-
     stage("PUSH TAGS") {
         if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             withCredentials([
@@ -126,6 +115,17 @@ node {
                     git push ${origin} master --tags
                 """
             }
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("BUILD BINARIES") {
+        if (isPr() || isPushToMaster()) {
+            sh """
+                npm run cleanBin && npm run buildAllBins
+            """
         }
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
