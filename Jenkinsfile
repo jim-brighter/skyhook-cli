@@ -122,7 +122,7 @@ node {
     }
 
     stage("BUILD BINARIES") {
-        if (isPr() || isPushToMaster()) {
+        if (isPr() || isVersionPushToMaster()) {
             sh """
                 npm run cleanBin && npm run buildAllBins
             """
@@ -173,7 +173,7 @@ def getReleaseId() {
     ]) {
         return sh(
             script: """
-                response=\$(curl -s https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD})
+                response=\$(curl -s https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GIT_USERNAME}:${GIT_PASSWORD})
 
                 echo \$response | grep -m 1 "\"id\"" | awk '{print \$2}' | sed -e 's/,//g'
             """,
@@ -196,7 +196,7 @@ def publishArtifacts(id, os) {
             curl "https://uploads.github.com/repos/skyhook-cli/skyhook-cli/releases/${id}/assets?name=${filename}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/zip" \
-            -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD} \
+            -u ${GIT_USERNAME}:${GIT_PASSWORD} \
             -X POST \
             --data-binary @"${fullPath}"
         """
