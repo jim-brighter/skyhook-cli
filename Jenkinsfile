@@ -44,7 +44,7 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+        if (isPr() || isPushToMaster(COMMIT_MESSAGE)) {
             sh """
                 npm i
             """
@@ -135,7 +135,7 @@ node {
     stage("PUBLISH GITHUB RELEASE") {
         if (isVersionPushToMaster(COMMIT_MESSAGE)) {
 
-            versionNumber = COMMIT_MESSAGE.split(' ')[4]
+            versionNumber = COMMIT_MESSAGE.split(' ')[3]
 
             withCredentials([
                 usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
