@@ -173,7 +173,7 @@ def getReleaseId() {
     ]) {
         return sh(
             script: """
-                response=$(curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD})
+                response=$(curl -s https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD})
 
                 echo \$response | grep -m 1 "\"id\"" | awk '{print \$2}' | sed -e 's/,//g'
             """,
