@@ -108,7 +108,7 @@ node {
     stage("BUILD BINARIES") {
         if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             sh """
-                npx pkg .
+                npm run cleanBin && npm run buildAllBins
             """
         }
         else {
@@ -130,6 +130,76 @@ node {
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
         }
+    }
+
+    stage("PUBLISH GITHUB RELEASE") {
+        if (isVersionPushToMaster(COMMIT_MESSAGE)) {
+
+            versionNumber = COMMIT_MESSAGE.split(' ')[4]
+
+            withCredentials([
+                usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
+            ]) {
+                sh """
+                    curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases \
+                    -u ${GIT_USERNAME}:${GIT_PASSWORD} \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    -H "Content-Type: application/json" \
+                    -X POST \
+                    -d '{
+                        "tag_name": "${versionNumber}-release",
+                        "target_commitish": "master",
+                        "name": "Release v${versionNumber}",
+                        "body": "Automated release v${versionNumber}"
+                    }'
+                """
+            }
+
+            def id = getReleaseId()
+
+            publishArtifacts(id, "windows")
+            publishArtifacts(id, "linux")
+            publishArtifacts(id, "macos")
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+}
+
+def getReleaseId() {
+    withCredentials([
+        usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
+    ]) {
+        return sh(
+            script: """
+                response=$(curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD})
+
+                echo \$response | grep -m 1 "\"id\"" | awk '{print \$2}' | sed -e 's/,//g'
+            """,
+            returnStdout: true
+        ).trim()
+    }
+}
+
+def publishArtifacts(id, os) {
+
+    filename = "skyhook-cli-${os}-x64.zip"
+    fullPath = "bin/${os}/${filename}"
+
+    print "Publishing ${filename} for release ${id}"
+
+    withCredentials([
+        usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
+    ]) {
+        sh """
+            curl "https://uploads.github.com/repos/skyhook-cli/skyhook-cli/releases/${id}/assets?name=${filename}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/zip" \
+            -u ${GITHUB_USERNAME}:${GITHUB_PASSWORD} \
+            -X POST \
+            --data-binary @"${fullPath}"
+        """
     }
 }
 
@@ -159,4 +229,8 @@ def isPushToMaster() {
 
 def isNonVersionPushToMaster(message) {
     return isPushToMaster() && !isVersionPush(message)
+}
+
+def isVersionPushToMaster(message) {
+    return isPushToMaster() && isVersionPush(message)
 }
