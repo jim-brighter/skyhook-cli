@@ -44,7 +44,7 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr() || isPushToMaster(COMMIT_MESSAGE)) {
+        if (isPr() || isPushToMaster()) {
             sh """
                 npm i
             """
