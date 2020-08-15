@@ -122,11 +122,7 @@ node {
     }
 
     stage("BUILD BINARIES") {
-<<<<<<< HEAD
         if (isPr() || isVersionPushToMaster(COMMIT_MESSAGE)) {
-=======
-        if (isPr() || isVersionPushToMaster()) {
->>>>>>> b487241712c845e39af0c39033ae9e40b9d3fe3e
             sh """
                 npm run cleanBin && npm run buildAllBins
             """
