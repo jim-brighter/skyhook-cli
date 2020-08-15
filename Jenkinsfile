@@ -108,8 +108,6 @@ node {
     stage("BUILD BINARIES") {
         if (isPr() || isPushToMaster()) {
             sh """
-                #!/bin/bash
-
                 npm run cleanBin && npm run buildAllBins
             """
         }
