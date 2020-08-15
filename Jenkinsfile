@@ -106,7 +106,7 @@ node {
     }
 
     stage("BUILD BINARIES") {
-        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+        if (isPr() || isPushToMaster()) {
             sh """
                 #!/bin/bash
 
