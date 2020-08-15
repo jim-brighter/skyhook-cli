@@ -8,7 +8,7 @@
   },
   "pkg": {
     "assets": [
-      "./node_modules/figlet/fonts/Standard.flf"
+      "node_modules/figlet/fonts/Standard.flf"
     ]
   },
   "scripts": {
@@ -16,7 +16,12 @@
     "jenkinsAuth": "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc",
     "publishPatch": "npm version patch -m \"version update to %s\" && npm publish --access public",
     "publishMinor": "npm version minor -m \"version update to %s\" && npm publish --access public",
-    "publishMajor": "npm version major -m \"version update to %s\" && npm publish --access public"
+    "publishMajor": "npm version major -m \"version update to %s\" && npm publish --access public",
+    "buildWindowsBin": "npx pkg -o bin/windows/skyhook.exe -t node12-win-x64 . && pushd bin/windows && zip -q ./skyhook-cli-windows-x64.zip skyhook.exe && popd",
+    "buildLinuxBin": "npx pkg -o bin/linux/skyhook -t node12-linux-x64 . && pushd bin/linux && zip -q ./skyhook-cli-linux-x64.zip skyhook && popd",
+    "buildMacosBin": "npx pkg -o bin/macos/skyhook -t node12-macos-x64 . && pushd bin/macos && zip -q ./skyhook-cli-macos-x64.zip skyhook && popd",
+    "buildAllBins": "npm run buildWindowsBin; npm run buildLinuxBin; npm run buildMacosBin",
+    "cleanBin": "rm -rf bin/"
   },
   "repository": {
     "type": "git",
