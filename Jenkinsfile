@@ -106,7 +106,7 @@ node {
     }
 
     stage("BUILD BINARIES") {
-        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+        if (isPr() || isPushToMaster()) {
             sh """
                 npm run cleanBin && npm run buildAllBins
             """
