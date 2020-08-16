@@ -15,6 +15,20 @@ const infraPrompts = () => {
             }
         },
         {
+            name: 'containerPlatform',
+            type: 'list',
+            choices: ['EKS', 'ECS (Fargate)', 'ECS (EC2)', 'OCP'],
+            default: 'EKS',
+            message: 'Which container management platform do you want to use?'
+        },
+        {
+            name: 'imageRepository',
+            type: 'list',
+            choices: ['ECR', 'Nexus'],
+            default: 'ECR',
+            message: 'Which docker image repository do you want to use?'
+        },
+        {
             name: 'jenkinsAdminUser',
             type: 'input',
             message: 'Enter the Jenkins admin username:',
@@ -61,20 +75,6 @@ const infraPrompts = () => {
             validate: (value) => {
                 return validateInfraPrompts(value);
             }
-        },
-        {
-            name: 'containerPlatform',
-            type: 'list',
-            choices: ['EKS', 'ECS (Fargate)', 'ECS (EC2)', 'OCP'],
-            default: 'EKS',
-            message: 'Which container management platform do you want to use?'
-        },
-        {
-            name: 'imageRepository',
-            type: 'list',
-            choices: ['ECR', 'Nexus'],
-            default: 'ECR',
-            message: 'Which docker image repository do you want to use?'
         },
         {
             name: 'seleniumAdminUsername',
