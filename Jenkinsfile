@@ -55,10 +55,10 @@ node {
     }
 
     stage("PRE PUBLISH") {
-        withCredentials([
-            string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
-        ]) {
-            if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+            withCredentials([
+                string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
+            ]) {
                 sh """
                     git config user.name "Skyhook Bot"
                     git config user.email "skyhookbot"
@@ -66,14 +66,14 @@ node {
                     npm run jenkinsAuth
                 """
             }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
         }
     }
 
     stage("PUBLISH PATCH") {
-        if (isPushToMaster() && isPatchPush(COMMIT_MESSAGE)) {
+        if (isPushToMaster() && (isPatchPush(COMMIT_MESSAGE) || isUncategorizedPush(COMMIT_MESSAGE))) {
             sh """
                 npm run publishPatch
             """
@@ -233,4 +233,11 @@ def isNonVersionPushToMaster(message) {
 
 def isVersionPushToMaster(message) {
     return isPushToMaster() && isVersionPush(message)
+}
+
+def isUncategorizedPush(message) {
+    return !isPatchPush(message) \
+    && !isMinorPush(message) \
+    && !isMajorPush(message) \
+    && !isVersionPush(message)
 }
