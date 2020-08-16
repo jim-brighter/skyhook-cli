@@ -11,7 +11,7 @@ const appPrompts = () => {
             type: 'list',
             choices: ['EKS', 'ECS', 'OCP'],
             default: 'EKS',
-            message: 'Which container management platform do you want to use?'
+            message: 'Which container management platform are you using?'
         },
         {
             name: 'dockerImage',

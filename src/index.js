@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 
-const { clear } = require('console');
-
 const chalk = require('chalk');
 const figlet = require('figlet');
 
 const init = require('./cli/init');
 
-clear();
+console.clear();
 
 console.log(
     chalk.cyan(

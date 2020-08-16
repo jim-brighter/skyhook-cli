@@ -11,21 +11,22 @@ const run = async () => {
     const infraOrApp = await infraOrAppPrompt.askInfraOrApp();
     let prompts;
 
-    if (infraOrApp['infraOrApp'] === 'infra' || infraOrApp['infraOrApp'] === 'infrastructure') {
-        prompts = {'infrastructureParams': await infraPrompts.infraPrompts()};
-    }
-    else if (infraOrApp['infraOrApp'] === 'app' || infraOrApp['infraOrApp'] === 'application') {
-        prompts = {'applicationParams': await appPrompts.appPrompts()};
-    }
-    else {
-        console.error('Invalid choice');
-        process.exit(1);
+    switch (infraOrApp['infraOrApp']) {
+        case 'infra':
+            prompts = {'infrastructureParams': await infraPrompts.infraPrompts()};
+            break;
+        case 'app':
+            prompts = {'applicationParams': await appPrompts.appPrompts()};
+            break;
+        default:
+            console.error('Invalid choice');
+            process.exit(1);
     }
 
     Object.assign(config, infraOrApp);
     Object.assign(config, prompts);
 
-    fileService.writeTetherFile(config);
+    fileService.writeTetherfile(config);
 
     console.log(`Your config is located at ${chalk.green('./Tetherfile')}`);
 };
