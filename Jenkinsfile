@@ -235,7 +235,7 @@ def isVersionPushToMaster(message) {
     return isPushToMaster() && isVersionPush(message)
 }
 
-def isUncategorizedPush=(message) {
+def isUncategorizedPush(message) {
     return !isPatchPush(message)
     && !isMinorPush(message)
     && !isMajorPush(message)
