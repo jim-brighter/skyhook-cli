@@ -72,8 +72,8 @@ const infraPrompts = () => {
         {
             name: 'imageRepository',
             type: 'list',
-            choices: ['Nexus', 'ECR'],
-            default: 'Nexus',
+            choices: ['ECR', 'Nexus'],
+            default: 'ECR',
             message: 'Which docker image repository do you want to use?'
         },
         {
