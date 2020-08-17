@@ -3,6 +3,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 def REPO_URL = "https://github.com/skyhook-cli/skyhook-cli.git"
 
 def COMMIT_MESSAGE
+def VERSION_NUMBER
 
 node {
     properties([[$class: 'JiraProjectProperty'], buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')),
@@ -123,8 +124,16 @@ node {
 
     stage("BUILD BINARIES") {
         if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+
+            VERSION_NUMBER = !isPr() 
+            ? sh(
+                script: "git log --format=%B -n 1 HEAD",
+                returnStdout: true
+            ).trim().split(' ')[3]
+            : env.BRANCH_NAME
+
             sh """
-                npm run cleanBin && npm run buildAllBins
+                npm run cleanBin && VERSION_NUMBER=${VERSION_NUMBER} npm run buildAllBins
             """
         }
         else {
@@ -134,11 +143,6 @@ node {
 
     stage("GITHUB RELEASE") {
         if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-
-            versionNumber = sh(
-                script: "git log --format=%B -n 1 HEAD",
-                returnStdout: true
-            ).trim().split(' ')[3]
 
             withCredentials([
                 usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
@@ -150,19 +154,19 @@ node {
                     -H "Content-Type: application/json" \
                     -X POST \
                     -d '{
-                        "tag_name": "${versionNumber}-release",
+                        "tag_name": "${VERSION_NUMBER}-release",
                         "target_commitish": "master",
-                        "name": "Release v${versionNumber}",
-                        "body": "Automated release v${versionNumber}"
+                        "name": "Release v${VERSION_NUMBER}",
+                        "body": "Automated release v${VERSION_NUMBER}"
                     }'
                 """
             }
 
             def id = getReleaseId()
 
-            publishArtifacts(id, "windows")
-            publishArtifacts(id, "linux")
-            publishArtifacts(id, "macos")
+            publishArtifacts(id, "windows", VERSION_NUMBER)
+            publishArtifacts(id, "linux", VERSION_NUMBER)
+            publishArtifacts(id, "macos", VERSION_NUMBER)
         }
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
@@ -185,9 +189,9 @@ def getReleaseId() {
     }
 }
 
-def publishArtifacts(id, os) {
+def publishArtifacts(id, os, version) {
 
-    filename = "skyhook-cli-${os}-x64.zip"
+    filename = "skyhook-cli-${os}-v${version}-x64.zip"
     fullPath = "bin/${os}/${filename}"
 
     print "Publishing ${filename} for release ${id}"
