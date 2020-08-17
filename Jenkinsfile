@@ -4,170 +4,168 @@ def REPO_URL = "https://github.com/skyhook-cli/skyhook-cli.git"
 
 def COMMIT_MESSAGE
 
-if (isPr() || isNonVersionPushToMaster()) {
-    node {
-        properties([[$class: 'JiraProjectProperty'], buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')),
-                    [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false]])
+node {
+    properties([[$class: 'JiraProjectProperty'], buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')),
+                [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false]])
 
-        deleteDir()
+    deleteDir()
 
-        stage("PR TITLE CHECK") {
-            if (isPr()) {
-                assert env.CHANGE_TITLE ==~ /(patch|minor|major):.+/
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+    stage("PR TITLE CHECK") {
+        if (isPr()) {
+            assert env.CHANGE_TITLE ==~ /(patch|minor|major):.+/
         }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
 
-        stage("GIT CHECKOUT") {
-            if (isPr() || isNonVersionPushToMaster()) {
-                git(
-                    url: "${REPO_URL}",
-                    credentialsId: 'git-login',
-                    branch: isPr() ? env.CHANGE_BRANCH : env.BRANCH_NAME
-                )
+    stage("GIT CHECKOUT") {
+        if (isPr() || isPushToMaster()) {
+            git(
+                url: "${REPO_URL}",
+                credentialsId: 'git-login',
+                branch: isPr() ? env.CHANGE_BRANCH : env.BRANCH_NAME
+            )
 
-                COMMIT_MESSAGE = sh(
-                    script: "git log --format=%B -n 1 HEAD",
-                    returnStdout: true
-                ).trim()
+            COMMIT_MESSAGE = sh(
+                script: "git log --format=%B -n 1 HEAD",
+                returnStdout: true
+            ).trim()
 
+            sh """
+                echo "Node Version \$(node -v)"
+            """
+
+            print "Commit Message: ${COMMIT_MESSAGE}"
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("NPM INSTALL") {
+        if (isPr() || isNonVersionPushToMaster()) {
+            sh """
+                npm i
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("PRE PUBLISH") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+            withCredentials([
+                string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
+            ]) {
                 sh """
-                    echo "Node Version \$(node -v)"
-                """
+                    git config user.name "Skyhook Bot"
+                    git config user.email "skyhookbot"
 
-                print "Commit Message: ${COMMIT_MESSAGE}"
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-
-        stage("NPM INSTALL") {
-            if (isPr() || isNonVersionPushToMaster()) {
-                sh """
-                    npm i
-                """
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-
-        stage("PRE PUBLISH") {
-            if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-                withCredentials([
-                    string(credentialsId: 'npm-token', variable: 'NPM_TOKEN')
-                ]) {
-                    sh """
-                        git config user.name "Skyhook Bot"
-                        git config user.email "skyhookbot"
-
-                        npm run jenkinsAuth
-                    """
-                }
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-
-        stage("PUBLISH PATCH") {
-            if (isPushToMaster() && (isPatchPush(COMMIT_MESSAGE) || isUncategorizedPush(COMMIT_MESSAGE))) {
-                sh """
-                    npm run publishPatch
+                    npm run jenkinsAuth
                 """
             }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
         }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
 
-        stage("PUBLISH MINOR") {
-            if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
+    stage("PUBLISH PATCH") {
+        if (isPushToMaster() && (isPatchPush(COMMIT_MESSAGE) || isUncategorizedPush(COMMIT_MESSAGE))) {
+            sh """
+                npm run publishPatch
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("PUBLISH MINOR") {
+        if (isPushToMaster() && isMinorPush(COMMIT_MESSAGE)) {
+            sh """
+                npm run publishMinor
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("PUBLISH MAJOR") {
+        if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
+            sh """
+                npm run publishMajor
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("PUSH TAGS") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+            withCredentials([
+                usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
+            ]) {
+                def origin = "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/skyhook-cli/skyhook-cli.git"
                 sh """
-                    npm run publishMinor
+                    git push ${origin} master --tags
                 """
             }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
         }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
 
-        stage("PUBLISH MAJOR") {
-            if (isPushToMaster() && isMajorPush(COMMIT_MESSAGE)) {
+    stage("BUILD BINARIES") {
+        if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+            sh """
+                npm run cleanBin && npm run buildAllBins
+            """
+        }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+        }
+    }
+
+    stage("GITHUB RELEASE") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
+
+            versionNumber = sh(
+                script: "git log --format=%B -n 1 HEAD",
+                returnStdout: true
+            ).trim().split(' ')[3]
+
+            withCredentials([
+                usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
+            ]) {
                 sh """
-                    npm run publishMajor
+                    curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases \
+                    -u ${GIT_USERNAME}:${GIT_PASSWORD} \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    -H "Content-Type: application/json" \
+                    -X POST \
+                    -d '{
+                        "tag_name": "${versionNumber}-release",
+                        "target_commitish": "master",
+                        "name": "Release v${versionNumber}",
+                        "body": "Automated release v${versionNumber}"
+                    }'
                 """
             }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+
+            def id = getReleaseId()
+
+            publishArtifacts(id, "windows")
+            publishArtifacts(id, "linux")
+            publishArtifacts(id, "macos")
         }
-
-        stage("PUSH TAGS") {
-            if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-                withCredentials([
-                    usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
-                ]) {
-                    def origin = "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/skyhook-cli/skyhook-cli.git"
-                    sh """
-                        git push ${origin} master --tags
-                    """
-                }
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-
-        stage("BUILD BINARIES") {
-            if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-                sh """
-                    npm run cleanBin && npm run buildAllBins
-                """
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
-        }
-
-        stage("GITHUB RELEASE") {
-            if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
-
-                versionNumber = sh(
-                    script: "git log --format=%B -n 1 HEAD",
-                    returnStdout: true
-                ).trim().split(' ')[3]
-
-                withCredentials([
-                    usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
-                ]) {
-                    sh """
-                        curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases \
-                        -u ${GIT_USERNAME}:${GIT_PASSWORD} \
-                        -H "Accept: application/vnd.github.v3+json" \
-                        -H "Content-Type: application/json" \
-                        -X POST \
-                        -d '{
-                            "tag_name": "${versionNumber}-release",
-                            "target_commitish": "master",
-                            "name": "Release v${versionNumber}",
-                            "body": "Automated release v${versionNumber}"
-                        }'
-                    """
-                }
-
-                def id = getReleaseId()
-
-                publishArtifacts(id, "windows")
-                publishArtifacts(id, "linux")
-                publishArtifacts(id, "macos")
-            }
-            else {
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-            }
+        else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
         }
     }
 }
