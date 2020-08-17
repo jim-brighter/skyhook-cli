@@ -125,10 +125,12 @@ node {
     stage("BUILD BINARIES") {
         if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
 
-            VERSION_NUMBER = sh(
+            VERSION_NUMBER = !isPr() 
+            ? sh(
                 script: "git log --format=%B -n 1 HEAD",
                 returnStdout: true
             ).trim().split(' ')[3]
+            : env.BRANCH_NAME
 
             sh """
                 npm run cleanBin && VERSION_NUMBER=${VERSION_NUMBER} npm run buildAllBins
