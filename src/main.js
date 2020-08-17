@@ -13,7 +13,7 @@ console.log(
     )
 );
 
-const command = process.argv[2];
+const command = process.argv[2] || 'init';
 
 switch (command) {
     case 'init':
