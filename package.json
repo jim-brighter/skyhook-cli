@@ -2,9 +2,9 @@
   "name": "@skyhook-cli/skyhook-cli",
   "version": "0.0.21",
   "description": "Skyhook CLI Codebase",
-  "main": "src/index.js",
+  "main": "src/main.js",
   "bin": {
-    "skyhook": "src/index.js"
+    "skyhook": "src/main.js"
   },
   "pkg": {
     "assets": [
