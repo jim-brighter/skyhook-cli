@@ -44,7 +44,7 @@ node {
     }
 
     stage("NPM INSTALL") {
-        if (isPr() || isPushToMaster()) {
+        if (isPr() || isNonVersionPushToMaster()) {
             sh """
                 npm i
             """
@@ -122,7 +122,7 @@ node {
     }
 
     stage("BUILD BINARIES") {
-        if (isPr() || isVersionPushToMaster(COMMIT_MESSAGE)) {
+        if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
             sh """
                 npm run cleanBin && npm run buildAllBins
             """
@@ -132,10 +132,13 @@ node {
         }
     }
 
-    stage("PUBLISH GITHUB RELEASE") {
-        if (isVersionPushToMaster(COMMIT_MESSAGE)) {
+    stage("GITHUB RELEASE") {
+        if (isNonVersionPushToMaster(COMMIT_MESSAGE)) {
 
-            versionNumber = COMMIT_MESSAGE.split(' ')[3]
+            versionNumber = sh(
+                script: "git log --format=%B -n 1 HEAD",
+                returnStdout: true
+            ).trim().split(' ')[3]
 
             withCredentials([
                 usernamePassword(credentialsId: 'git-login', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')
@@ -229,10 +232,6 @@ def isPushToMaster() {
 
 def isNonVersionPushToMaster(message) {
     return isPushToMaster() && !isVersionPush(message)
-}
-
-def isVersionPushToMaster(message) {
-    return isPushToMaster() && isVersionPush(message)
 }
 
 def isUncategorizedPush(message) {
