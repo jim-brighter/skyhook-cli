@@ -12,7 +12,7 @@ node {
 
     stage("PR TITLE CHECK") {
         if (isPr()) {
-            assert env.CHANGE_TITLE ==~ /(patch|minor|major):[ a-zA-Z1-9,]*/
+            assert env.CHANGE_TITLE ==~ /(patch|minor|major):.+/
         }
         else {
             Utils.markStageSkippedForConditional(STAGE_NAME)
