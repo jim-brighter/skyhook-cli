@@ -125,7 +125,7 @@ node {
     stage("BUILD BINARIES") {
         if (isPr() || isNonVersionPushToMaster(COMMIT_MESSAGE)) {
 
-            VERSION_NUMBER = !isPr() 
+            VERSION_NUMBER = !isPr()
             ? sh(
                 script: "git log --format=%B -n 1 HEAD",
                 returnStdout: true
@@ -149,7 +149,7 @@ node {
             ]) {
                 sh """
                     curl https://api.github.com/repos/skyhook-cli/skyhook-cli/releases \
-                    -u ${GIT_USERNAME}:${GIT_PASSWORD} \
+                    -H "Authorization: token ${GIT_PASSWORD}" \
                     -H "Accept: application/vnd.github.v3+json" \
                     -H "Content-Type: application/json" \
                     -X POST \
@@ -180,7 +180,7 @@ def getReleaseId() {
     ]) {
         return sh(
             script: """
-                response=\$(curl -s https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -u ${GIT_USERNAME}:${GIT_PASSWORD})
+                response=\$(curl -s https://api.github.com/repos/skyhook-cli/skyhook-cli/releases/latest -H "Authorization: token ${GIT_PASSWORD}")
 
                 echo \$response | jq .id
             """,
@@ -203,7 +203,7 @@ def publishArtifacts(id, os, version) {
             curl "https://uploads.github.com/repos/skyhook-cli/skyhook-cli/releases/${id}/assets?name=${filename}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/zip" \
-            -u ${GIT_USERNAME}:${GIT_PASSWORD} \
+            -H "Authorization: token ${GIT_PASSWORD}" \
             -X POST \
             --data-binary @"${fullPath}"
         """
