@@ -1,6 +1,6 @@
 {
   "name": "@skyhook-cli/skyhook-cli",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "Skyhook CLI Codebase",
   "main": "src/main.js",
   "bin": {
