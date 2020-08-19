@@ -17,10 +17,14 @@
     "publishPatch": "npm version patch -m \"version update to %s\" && npm publish --access public",
     "publishMinor": "npm version minor -m \"version update to %s\" && npm publish --access public",
     "publishMajor": "npm version major -m \"version update to %s\" && npm publish --access public",
-    "buildWindowsBin": "npx pkg -o bin/windows/skyhook.exe -t node12-win-x64 . && cd bin/windows && zip -q ./skyhook-cli-windows-v${VERSION_NUMBER:-local}-x64.zip skyhook.exe && cd ../..",
-    "buildLinuxBin": "npx pkg -o bin/linux/skyhook -t node12-linux-x64 . && cd bin/linux && zip -q ./skyhook-cli-linux-v${VERSION_NUMBER:-local}-x64.zip skyhook && cd ../..",
-    "buildMacosBin": "npx pkg -o bin/macos/skyhook -t node12-macos-x64 . && cd bin/macos && zip -q ./skyhook-cli-macos-v${VERSION_NUMBER:-local}-x64.zip skyhook && cd ../..",
-    "buildAllBins": "npm run buildWindowsBin; npm run buildLinuxBin; npm run buildMacosBin",
+    "pkgWindows": "npx pkg -o bin/windows/skyhook.exe -t node12-win-x64 .",
+    "pkgLinux": "npx pkg -o bin/linux/skyhook -t node12-linux-x64 .",
+    "pkgMacos": "npx pkg -o bin/macos/skyhook -t node12-macos-x64 .",
+    "pkgAll": "npm run pkgWindows && npm run pkgLinux && npm run pkgMacos",
+    "buildWindowsBin": "npm run pkgWindows && cd bin/windows && zip -q ./skyhook-cli-windows-v${VERSION_NUMBER:-local}-x64.zip skyhook.exe && cd ../..",
+    "buildLinuxBin": "npm run pkgLinux && cd bin/linux && zip -q ./skyhook-cli-linux-v${VERSION_NUMBER:-local}-x64.zip skyhook && cd ../..",
+    "buildMacosBin": "npm run pkgMacos && cd bin/macos && zip -q ./skyhook-cli-macos-v${VERSION_NUMBER:-local}-x64.zip skyhook && cd ../..",
+    "buildAllBins": "npm run buildWindowsBin && npm run buildLinuxBin && npm run buildMacosBin",
     "cleanBin": "rm -rf bin/"
   },
   "repository": {
